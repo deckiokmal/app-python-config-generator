@@ -1,0 +1,32 @@
+##############################__INITIALIZE__##############################
+nama_pelanggan: "2011003319-KK-BSB-TANJUNG-BATU"
+username: "cpelintasartassa"
+password: "L1nt4s4rt@_SSA!"
+
+##############################__UNDERLAY__################################
+link1_int: "wan"
+link1_add: "1.11.19.246"
+link1_subnet: "255.255.255.252"
+link1_gw: "1.11.19.245"
+
+link2_int: "lan3"
+link2_add: "103.7.195.198"
+link2_subnet: "255.255.255.252"
+link2_gw: "103.7.195.197"
+
+lan_add: "172.22.12.158"
+lan_subnet: "255.255.255.224"
+lan_networkadd: "172.22.12.128/27"
+
+loopback_int: "LO0"
+loopback_add: "1.5.206.91"
+
+##############################__OVERLAY__#################################
+link1_ipsec_remotegw: "1.11.13.2"
+link1_psksecret: "P4ssword"
+link2_ipsec_remotegw: "123.231.246.75"
+link2_psksecret: "P4ssword"
+
+##############################__ROUTING__#################################
+community_lokal: "2023:1"
+bgp_as: "65508"

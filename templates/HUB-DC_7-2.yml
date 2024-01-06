@@ -1,0 +1,8 @@
+hostname: "HUB-DC"
+wan1_interface: "wan1"
+wan1_ip: "10.10.10.1"
+wan1_subnet: "255.255.255.252"
+
+wan2_interface: "wan2"
+wan2_ip: "10.10.20.1"
+wan2_subnet: "255.255.255.252"

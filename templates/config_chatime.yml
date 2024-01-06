@@ -1,0 +1,10 @@
+nama_pelanggan: "LAMPUNG"
+
+ip_p2p_lan: "192.168.209.73"
+lan_subnet: "255.255.255.252"
+ip_p2p_lan_net: "192.168.209.72/30"
+
+network_lan_store: "172.19.9.0/28"
+
+tunnel_dc_add_m2m: "192.168.208.20"
+tunnel_ho_add_fo: "192.168.207.20"

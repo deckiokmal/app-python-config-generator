@@ -1,0 +1,80 @@
+config firewall address
+    edit "{{dst_name}}"
+        set allow-routing enable
+        set subnet {{dst_network}}
+    next
+    edit "{{src_name}}"
+        set allow-routing enable
+        set subnet {{src_network}}
+    next
+end
+
+config firewall addrgrp
+    edit "{{dst_group_name}}"
+        set member "{{dst_name}}"
+        set allow-routing enable
+    next
+    edit "{{src_group_name}}"
+        set member "{{src_name}}"
+        set allow-routing enable
+    next
+end
+
+config vpn ipsec phase1-interface
+    edit "{{tunnel_name}}"
+        set interface "{{interface}}"
+        set ike-version {{ike}}
+        set local-gw {{local_gw}}
+        set keylife {{keylife_1}}
+        set peertype {{peertype}}
+        set net-device disable
+        set proposal {{phase1_proposal}}
+        set dhgrp {{dhgrp_1}}
+        set remote-gw {{remote_gw}}
+        set psksecret {{secret}}
+    next
+end
+
+config vpn ipsec phase2-interface
+    edit "{{tunnel_name}}"
+        set phase1name "{{tunnel_name}}"
+        set proposal {{phase2_proposal}}
+        set dhgrp {{dhgrp_2}}
+        set auto-negotiate enable
+        set src-addr-type name
+        set dst-addr-type name
+        set src-name "{{src_group_name}}"
+        set dst-name "{{dst_group_name}}"
+        set keylifeseconds {{keylife_2}}
+    next
+end
+
+config firewall policy
+    edit {{policy_out_id}}
+        set name "{{policy_out_name}}"
+        set srcintf "{{srcintf}}"
+        set dstintf "{{tunnel_name}}"
+        set srcaddr "{{src_group_name}}"
+        set dstaddr "{{dst_group_name}}"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+    next
+    edit {{policy_in_id}}
+        set name "{{policy_in_name}}"
+        set srcintf "{{tunnel_name}}"
+        set dstintf "{{srcintf}}"
+        set srcaddr "{{src_group_name}}"
+        set dstaddr "{{dst_group_name}}"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+    next
+end
+
+config router static
+    edit {{static_route_id}}
+        set device "{{tunnel_name}}"
+        set dstaddr "{{dst_group_name}}"
+    next
+end

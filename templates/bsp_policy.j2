@@ -1,0 +1,2743 @@
+#########################FIREWALL ADDRESSESS DAN SERVICES#####################
+config firewall address
+    edit "DC SERVER1"
+        set allow-routing enable
+        set subnet 10.79.100.76 255.255.255.255
+    next
+    edit "DC SERVER2"
+        set allow-routing enable
+        set subnet 10.79.100.77 255.255.255.255
+    next
+    edit "MAIL SERVER BSP"
+        set allow-routing enable
+        set subnet 10.79.100.50 255.255.255.255
+    next
+    edit "SERVER ABSENSI CLOUDEKA"
+        set allow-routing enable
+        set subnet 103.168.134.72 255.255.255.255
+    next
+    edit "DNS LINTASARTA1"
+        set subnet 202.152.0.2 255.255.255.255
+    next
+    edit "DNS LINTASARTA2"
+        set allow-routing enable
+        set subnet 202.152.5.36 255.255.255.255
+    next
+    edit "SERVER SAP-1"
+        set allow-routing enable
+        set subnet 10.79.194.24 255.255.255.255
+    next
+    edit "SERVER SAP-2"
+        set allow-routing enable
+        set subnet 10.79.194.30 255.255.255.255
+    next
+    edit "SERVER SAP-3"
+        set allow-routing enable
+        set subnet 10.79.194.32 255.255.255.255
+    next
+    edit "SERVER_OWL"
+        set allow-routing enable
+        set subnet 149.129.255.141 255.255.255.255
+    next
+    edit "SERVER_STAGING"
+        set allow-routing enable
+        set subnet 103.148.190.100 255.255.255.255
+    next
+    edit "SSLVPN JAKARTA"
+        set allow-routing enable
+        set subnet 203.153.121.162 255.255.255.255
+    next
+    edit "{{local_segment_1}}"
+        set allow-routing enable
+        set subnet {{ip_local_segment_1}}
+    next
+end
+
+config firewall addrgrp
+    edit "BAD/COMPROMISE IP"
+        set color 6
+        set allow-routing enable
+    next
+    edit "SAP_GROUP"
+        set color 6
+        set member "SERVER SAP-1" "SERVER SAP-2" "SERVER SAP-3"
+        set allow-routing enable
+    next
+    edit "DC SERVER JKT"
+        set member "DC SERVER1" "DC SERVER2"
+        set allow-routing enable
+    next
+    edit "USER ePMS"
+        set allow-routing enable
+    next
+    edit "USER_GM_GROUP"
+        set allow-routing enable
+    next
+    edit "USER_HRD_GROUP"
+        set allow-routing enable
+    next
+    edit "USER_PROCUREMENT_GROUP"
+        set allow-routing enable
+    next
+    edit "GENERAL_USER_GROUP"
+    next
+    edit "USER_CANVA_GROUP"
+        set allow-routing enable
+    next
+    edit "USER_MICROSOFT_GROUP"
+        set allow-routing enable
+    next
+    edit "CCTV-GROUP"
+        set allow-routing enable
+    next
+    edit "LOCAL_GROUP"
+        set member "{{local_segment_1}}"
+        set allow-routing enable
+    next
+    edit "IP_TROUBLESHOOT"
+        set member "DC SERVER1" "DC SERVER2" "DNS LINTASARTA1" "DNS LINTASARTA2" "MAIL SERVER BSP" "SERVER SAP-1" "SERVER SAP-2" "SERVER SAP-3"
+    next
+    edit "CLOUDEKA_GROUP"
+        set member "SERVER_OWL" "SERVER ABSENSI CLOUDEKA"
+        set allow-routing enable
+    next
+end
+
+
+config firewall service custom
+    edit "ABSENSI CLOUDEKA"
+        set tcp-portrange 8081
+    next
+    edit "TCP-135"
+        set tcp-portrange 135
+    next
+    edit "TCP-1434"
+        set tcp-portrange 1434
+    next
+    edit "TCP-4022"
+        set tcp-portrange 4022
+    next
+    edit "UDP-1434"
+        set udp-portrange 1434
+    next
+    edit "TCP-8081"
+        set tcp-portrange 8081
+    next
+    edit "TCP-7496"
+        set tcp-portrange 7496
+    next
+    edit "TCP/UDP WIN-AD JAKARTA"
+        set tcp-portrange 3286 49155 49158
+        set udp-portrange 137
+    next
+end
+
+config firewall service group
+    edit "Windows AD"
+        set member "DCE-RPC" "KERBEROS" "LDAP" "LDAP_UDP" "NTP" "SMB" "TCP/UDP WIN-AD JAKARTA"
+    next
+    edit "Mail Service"
+        set member "HTTPS" "IMAP" "IMAPS" "POP3" "POP3S" "SMTP" "SMTPS"
+    next
+    edit "Server Staging"
+        set member "TCP-135" "TCP-1433" "TCP-1434" "TCP-4022" "UDP-1434" "TCP-8081" "TCP-7496" "PING"
+    next
+    edit "Server Cloudeka"
+        set member "HTTP" "HTTPS" "ABSENSI CLOUDEKA"
+    next
+end
+
+
+####################END FIREWALL ADDRESSESS DAN SERVICES#######################
+
+
+####################SECURITY PROFILE###########################
+
+config ips sensor
+    edit "IPS_BAKRIE"
+        set comment "Prevent critical attacks. 23112023"
+        set block-malicious-url enable
+        set scan-botnet-connections block
+        config entries
+            edit 1
+                set severity medium high critical 
+                set log-packet enable
+            next
+        end
+    next
+end
+
+config application list
+    edit "APP_GENERAL_USER"
+        set comment "FIX 23112023"
+        set app-replacemsg disable
+        set other-application-log enable
+        set unknown-application-log enable
+        config entries
+            edit 1
+                set application 28057 37371 40698 39999 49971 49970
+                set action pass
+                set log disable
+            next
+            edit 2
+                set application 32121 35434 32417 32122 43325 43324 43294 23382 35419 42006 35418
+                set action pass
+                set log disable
+            next
+            edit 3
+                set application 43541 48977 48976 47822 37065 47383 47382 48958 47385 49830
+                set action pass
+                set log disable
+            next
+            edit 4
+                set category 2 5 6 7 8 22 23
+            next
+            edit 5
+                set category 25 28
+                set action pass
+                set log disable
+            next
+        end
+    next
+    edit "APP_USER_CANVA"
+        set comment "FIX 23112023"
+        set app-replacemsg disable
+        set other-application-log enable
+        set unknown-application-action block
+        set unknown-application-log enable
+        config entries
+            edit 1
+                set application 28057 37371 40698 39999 49971 49970
+                set action pass
+                set log disable
+            next
+            edit 2
+                set application 32121 35434 32417 32122 43325 43324 43294 23382 35419 42006 35418
+                set action pass
+                set log disable
+            next
+            edit 3
+                set application 43541 48977 48976 47822 37065 47383 47382 48958 47385 49830
+                set action pass
+                set log disable
+            next
+            edit 4
+                set application 16331 40318 40317 38645 23257 25196
+            next
+            edit 5
+                set category 2 5 6 7 8 22 23
+            next
+            edit 6
+                set category 25 28 29
+                set action pass
+                set log disable
+            next
+        end
+    next
+    edit "APP_PROCUREMENT"
+        set other-application-log enable
+        config entries
+            edit 1
+                set application 31077 33321 49282 41598 48989 44956 31076 33104 23397 30201 16420 17396 49969 38569 25564
+            next
+            edit 2
+                set application 42537
+            next
+            edit 3
+                set category 2 6 23
+            next
+        end
+    next
+    edit "APP_HRD"
+        set other-application-log enable
+        config entries
+            edit 1
+                set application 31077 33321 49282 41598 48989 44956 31076 33104 23397 30201 16420 17396 49969 38569 25564
+            next
+            edit 2
+                set application 16331 40318 40317 38645 23257 25196
+                set action pass
+                set log disable
+            next
+            edit 3
+                set category 2 6 23
+            next
+        end
+    next
+end
+
+config webfilter urlfilter
+    edit 1
+        set name "Auto-webfilter-urlfilter_fonzdgitg"
+        config entries
+            edit 1
+                set url "*facebook.com*"
+                set type wildcard
+                set action block
+            next
+            edit 2
+                set url "*youtube.com*"
+                set type wildcard
+                set action block
+            next
+            edit 3
+                set url "*instagram.com*"
+                set type wildcard
+                set action block
+            next
+            edit 4
+                set url "*twitter.com*"
+                set type wildcard
+                set action block
+            next
+            edit 5
+                set url "*bakriesumatera.com"
+                set type wildcard
+                set action allow
+            next
+        end
+    next
+    edit 2
+        set name "Auto-webfilter-urlfilter_4grm3jbi7"
+        config entries
+            edit 10
+                set url "*bpdb.or.id*"
+                set type wildcard
+                set action allow
+            next
+            edit 8
+                set url "*pajak.go.id*"
+                set type wildcard
+                set action allow
+            next
+            edit 1
+                set url "*gunbroker.com*"
+                set type wildcard
+                set action block
+            next
+            edit 2
+                set url "*whatsapp.com*"
+                set type wildcard
+                set action allow
+            next
+            edit 3
+                set url "*onedrive.com*"
+                set type wildcard
+                set action allow
+            next
+            edit 4
+                set url "*web.whatsapp.com*"
+                set type wildcard
+                set action allow
+            next
+            edit 5
+                set url "103.168.134.72"
+                set type wildcard
+                set action allow
+            next
+            edit 6
+                set url "103.148.190.100"
+                set type wildcard
+                set action allow
+            next
+            edit 7
+                set url "149.129.255.141"
+                set type wildcard
+                set action allow
+            next
+            edit 9
+                set url "*djponline.pajak.go.id*"
+                set type wildcard
+                set action allow
+            next
+            edit 11
+                set url "*facebook.com*"
+                set type wildcard
+                set action block
+            next
+            edit 12
+                set url "*instagram.com*"
+                set type wildcard
+                set action block
+            next
+            edit 13
+                set url "*youtube.com*"
+                set type wildcard
+                set action block
+            next
+        end
+    next
+    edit 3
+        set name "Auto-webfilter-urlfilter_o4tuyeeow"
+        config entries
+            edit 1
+                set url "*nexford.org"
+                set type wildcard
+                set action allow
+            next
+            edit 2
+                set url "*36.37.124.242"
+                set type wildcard
+                set action allow
+            next
+            edit 3
+                set url "*mybb-gw.bluebird.id*"
+                set type wildcard
+                set action monitor
+            next
+        end
+    next
+    edit 4
+        set name "Auto-webfilter-urlfilter_77c831vb2"
+        config entries
+            edit 1
+                set url "*nexford.org"
+                set type wildcard
+                set action allow
+            next
+            edit 2
+                set url "*36.37.124.242"
+                set type wildcard
+                set action allow
+            next
+        end
+    next
+    edit 5
+        set name "Auto-webfilter-urlfilter_w5uj23a7o"
+        config entries
+            edit 13
+                set url "*program-psr.bpdp.or.id*"
+                set type wildcard
+                set action allow
+            next
+            edit 11
+                set url "*pajak.go.id*"
+                set type wildcard
+                set action allow
+            next
+            edit 10
+                set url "*129.149.255.141*"
+                set type wildcard
+                set action allow
+            next
+            edit 3
+                set url "*onedrive.com*"
+                set type wildcard
+                set action allow
+            next
+            edit 4
+                set url "*whatsapp*"
+                set type wildcard
+                set action allow
+            next
+            edit 6
+                set url "103.168.134.72"
+                set type wildcard
+                set action allow
+            next
+            edit 7
+                set url "103.148.190.100"
+                set type wildcard
+                set action allow
+            next
+            edit 14
+                set url "*mybb-gw.bluebird.id*"
+                set type wildcard
+                set action monitor
+            next
+            edit 15
+                set url "*fihrrst.org*"
+                set type wildcard
+                set action allow
+            next
+            edit 12
+                set url "*djponline.pajak.go.id*"
+                set type wildcard
+                set action allow
+            next
+            edit 16
+                set url "drive.google.com*"
+                set type wildcard
+                set action allow
+            next
+            edit 17
+                set url "*idxnet.co.id"
+                set type wildcard
+                set action allow
+            next
+            edit 18
+                set url "*canva.com"
+                set type wildcard
+                set action block
+            next
+        end
+    next
+    edit 6
+        set name "105 Req 24 Jul 2023 WebFilter"
+        config entries
+            edit 11
+                set url "*pajak.go.id*"
+                set type wildcard
+                set action allow
+            next
+            edit 10
+                set url "*129.149.255.141*"
+                set type wildcard
+                set action allow
+            next
+            edit 1
+                set url "*gunbroker.com*"
+                set type wildcard
+                set action block
+            next
+            edit 2
+                set url "*whatsapp.com*"
+                set type wildcard
+                set action allow
+            next
+            edit 3
+                set url "*onedrive.com*"
+                set type wildcard
+                set action allow
+            next
+            edit 4
+                set url "*web.whatsapp.com*"
+                set type wildcard
+                set action allow
+            next
+            edit 6
+                set url "103.168.134.72"
+                set type wildcard
+                set action allow
+            next
+            edit 7
+                set url "103.148.190.100"
+                set type wildcard
+                set action allow
+            next
+            edit 12
+                set url "*djponline.pajak.go.id*"
+                set type wildcard
+                set action allow
+            next
+            edit 14
+                set url "*fihrrst.org*"
+                set type wildcard
+                set action allow
+            next
+            edit 15
+                set url "*idxnet.co.id"
+                set type wildcard
+                set action allow
+            next
+            edit 13
+                set url "*linkedin.com"
+                set type wildcard
+                set action block
+            next
+            edit 16
+                set url "*brave.com"
+                set type wildcard
+                set action allow
+            next
+            edit 17
+                set url "*canva.com"
+                set type wildcard
+                set action block
+            next
+        end
+    next
+    edit 7
+        set name "WebFilter HRD"
+        config entries
+            edit 13
+                set url "*linkedin.com*"
+                set type wildcard
+                set action allow
+            next
+            edit 11
+                set url "*pajak.go.id*"
+                set type wildcard
+                set action allow
+            next
+            edit 10
+                set url "*129.149.255.141*"
+                set type wildcard
+                set action allow
+            next
+            edit 1
+                set url "*gunbroker.com*"
+                set type wildcard
+                set action block
+            next
+            edit 2
+                set url "*whatsapp.com*"
+                set type wildcard
+                set action allow
+            next
+            edit 3
+                set url "*onedrive.com*"
+                set type wildcard
+                set action allow
+            next
+            edit 4
+                set url "*web.whatsapp.com*"
+                set type wildcard
+                set action allow
+            next
+            edit 6
+                set url "103.168.134.72"
+                set type wildcard
+                set action allow
+            next
+            edit 7
+                set url "103.148.190.100"
+                set type wildcard
+                set action allow
+            next
+            edit 8
+                set url "*youtube.com"
+                set type wildcard
+                set action block
+            next
+            edit 12
+                set url "*djponline.pajak.go.id*"
+                set type wildcard
+                set action allow
+            next
+            edit 14
+                set url "*jobstreet.co.id"
+                set type wildcard
+                set action allow
+            next
+            edit 15
+                set url "*mybb-gw.bluebird.id*"
+                set type wildcard
+                set action monitor
+            next
+            edit 16
+                set url "*fihrrst.org*"
+                set type wildcard
+                set action allow
+            next
+            edit 17
+                set url "*idxnet.co.id"
+                set type wildcard
+                set action allow
+            next
+            edit 18
+                set url "*canva.com"
+                set type wildcard
+                set action block
+            next
+        end
+    next
+    edit 8
+        set name "Auto-webfilter-urlfilter_qr10u35sx"
+        config entries
+            edit 13
+                set url "*program-psr.bpdp.or.id*"
+                set type wildcard
+                set action allow
+            next
+            edit 11
+                set url "*pajak.go.id*"
+                set type wildcard
+                set action allow
+            next
+            edit 10
+                set url "*129.149.255.141*"
+                set type wildcard
+                set action allow
+            next
+            edit 3
+                set url "*onedrive.com*"
+                set type wildcard
+                set action allow
+            next
+            edit 4
+                set url "*whatsapp*"
+                set type wildcard
+                set action allow
+            next
+            edit 6
+                set url "103.168.134.72"
+                set type wildcard
+                set action allow
+            next
+            edit 7
+                set url "103.148.190.100"
+                set type wildcard
+                set action allow
+            next
+            edit 14
+                set url "*mybb-gw.bluebird.id*"
+                set type wildcard
+                set action monitor
+            next
+            edit 15
+                set url "*fihrrst.org*"
+                set type wildcard
+                set action allow
+            next
+            edit 12
+                set url "*djponline.pajak.go.id*"
+                set type wildcard
+                set action allow
+            next
+            edit 16
+                set url "drive.google.com*"
+                set type wildcard
+                set action allow
+            next
+            edit 17
+                set url "*idxnet.co.id"
+                set type wildcard
+                set action allow
+            next
+            edit 18
+                set url "*linkedin*"
+                set type wildcard
+                set action allow
+            next
+            edit 19
+                set url "*canva.com"
+                set type wildcard
+                set action allow
+            next
+        end
+    next
+end
+
+config dnsfilter domain-filter
+    edit 1
+        set name "DNS_ACCESS_CANVA"
+        config entries
+            edit 1
+                set domain "*canva.com"
+                set type wildcard
+                set action allow
+            next
+        end
+    next
+    edit 2
+        set name "DNS_GENERAL_USER"
+        config entries
+            edit 1
+                set domain "*canva.com"
+                set type wildcard
+            next
+        end
+    next
+    edit 3
+        set name "DNS_HRD"
+        config entries
+            edit 1
+                set domain "*canva.com"
+                set type wildcard
+            next
+        end
+    next
+    edit 4
+        set name "DNS_PROCUREMENT"
+        config entries
+            edit 1
+                set domain "*canva.com"
+                set type wildcard
+            next
+        end
+    next
+end
+
+config dnsfilter profile
+    edit "DNS_GENERAL_USER"
+        config domain-filter
+            set domain-filter-table 2
+        end
+        config ftgd-dns
+            config filters
+                edit 1
+                    set category 1
+                    set action block
+                next
+                edit 2
+                    set category 3
+                    set action block
+                next
+                edit 3
+                    set category 4
+                    set action block
+                next
+                edit 4
+                    set category 5
+                    set action block
+                next
+                edit 5
+                    set category 6
+                    set action block
+                next
+                edit 6
+                    set category 12
+                    set action block
+                next
+                edit 7
+                    set category 59
+                    set action block
+                next
+                edit 8
+                    set category 62
+                    set action block
+                next
+                edit 9
+                    set category 83
+                    set action block
+                next
+                edit 10
+                    set category 96
+                    set action block
+                next
+                edit 11
+                    set category 98
+                    set action block
+                next
+                edit 12
+                    set category 99
+                    set action block
+                next
+                edit 13
+                    set category 2
+                    set action block
+                next
+                edit 14
+                    set category 7
+                    set action block
+                next
+                edit 15
+                    set category 8
+                    set action block
+                next
+                edit 16
+                    set category 9
+                    set action block
+                next
+                edit 17
+                    set category 11
+                    set action block
+                next
+                edit 18
+                    set category 13
+                    set action block
+                next
+                edit 19
+                    set category 14
+                    set action block
+                next
+                edit 20
+                    set category 15
+                    set action block
+                next
+                edit 21
+                    set category 16
+                    set action block
+                next
+                edit 22
+                    set category 57
+                    set action block
+                next
+                edit 23
+                    set category 63
+                    set action block
+                next
+                edit 24
+                    set category 64
+                    set action block
+                next
+                edit 25
+                    set category 65
+                    set action block
+                next
+                edit 26
+                    set category 66
+                    set action block
+                next
+                edit 27
+                    set category 67
+                    set action block
+                next
+                edit 28
+                    set category 19
+                    set action block
+                next
+                edit 29
+                    set category 25
+                    set action block
+                next
+                edit 30
+                    set category 72
+                    set action block
+                next
+                edit 31
+                    set category 26
+                    set action block
+                next
+                edit 32
+                    set category 61
+                    set action block
+                next
+                edit 33
+                    set category 86
+                    set action block
+                next
+                edit 34
+                    set category 88
+                next
+                edit 35
+                    set category 90
+                next
+                edit 36
+                    set category 91
+                next
+                edit 37
+                    set category 37
+                    set action block
+                next
+                edit 38
+                    set category 42
+                    set action block
+                next
+                edit 39
+                next
+            end
+        end
+        set log-all-domain enable
+    next
+    edit "DNS_HRD"
+        config domain-filter
+            set domain-filter-table 3
+        end
+        config ftgd-dns
+            config filters
+                edit 1
+                    set category 1
+                    set action block
+                next
+                edit 2
+                    set category 3
+                    set action block
+                next
+                edit 3
+                    set category 4
+                    set action block
+                next
+                edit 4
+                    set category 5
+                    set action block
+                next
+                edit 5
+                    set category 6
+                    set action block
+                next
+                edit 6
+                    set category 12
+                    set action block
+                next
+                edit 7
+                    set category 59
+                    set action block
+                next
+                edit 8
+                    set category 62
+                    set action block
+                next
+                edit 9
+                    set category 83
+                    set action block
+                next
+                edit 10
+                    set category 96
+                    set action block
+                next
+                edit 11
+                    set category 98
+                    set action block
+                next
+                edit 12
+                    set category 99
+                    set action block
+                next
+                edit 13
+                    set category 2
+                    set action block
+                next
+                edit 14
+                    set category 7
+                    set action block
+                next
+                edit 15
+                    set category 8
+                    set action block
+                next
+                edit 16
+                    set category 9
+                    set action block
+                next
+                edit 17
+                    set category 11
+                    set action block
+                next
+                edit 18
+                    set category 13
+                    set action block
+                next
+                edit 19
+                    set category 14
+                    set action block
+                next
+                edit 20
+                    set category 15
+                    set action block
+                next
+                edit 21
+                    set category 16
+                    set action block
+                next
+                edit 22
+                    set category 57
+                    set action block
+                next
+                edit 23
+                    set category 63
+                    set action block
+                next
+                edit 24
+                    set category 64
+                    set action block
+                next
+                edit 25
+                    set category 65
+                    set action block
+                next
+                edit 26
+                    set category 66
+                    set action block
+                next
+                edit 27
+                    set category 67
+                    set action block
+                next
+                edit 28
+                    set category 19
+                next
+                edit 29
+                    set category 26
+                    set action block
+                next
+                edit 30
+                    set category 61
+                    set action block
+                next
+                edit 31
+                    set category 86
+                    set action block
+                next
+                edit 32
+                    set category 88
+                next
+                edit 33
+                    set category 90
+                next
+                edit 34
+                    set category 91
+                next
+                edit 35
+                    set category 20
+                    set action block
+                next
+                edit 36
+                    set category 37
+                    set action block
+                next
+                edit 37
+                    set category 42
+                    set action block
+                next
+                edit 38
+                next
+            end
+        end
+        set log-all-domain enable
+    next
+    edit "DNS_PROCUREMENT"
+        config domain-filter
+            set domain-filter-table 4
+        end
+        config ftgd-dns
+            config filters
+                edit 1
+                    set category 1
+                    set action block
+                next
+                edit 2
+                    set category 3
+                    set action block
+                next
+                edit 3
+                    set category 4
+                    set action block
+                next
+                edit 4
+                    set category 5
+                    set action block
+                next
+                edit 5
+                    set category 6
+                    set action block
+                next
+                edit 6
+                    set category 12
+                    set action block
+                next
+                edit 7
+                    set category 59
+                    set action block
+                next
+                edit 8
+                    set category 62
+                    set action block
+                next
+                edit 9
+                    set category 83
+                    set action block
+                next
+                edit 10
+                    set category 96
+                    set action block
+                next
+                edit 11
+                    set category 98
+                    set action block
+                next
+                edit 12
+                    set category 99
+                    set action block
+                next
+                edit 13
+                    set category 2
+                    set action block
+                next
+                edit 14
+                    set category 7
+                    set action block
+                next
+                edit 15
+                    set category 8
+                    set action block
+                next
+                edit 16
+                    set category 9
+                    set action block
+                next
+                edit 17
+                    set category 11
+                    set action block
+                next
+                edit 18
+                    set category 13
+                    set action block
+                next
+                edit 19
+                    set category 14
+                    set action block
+                next
+                edit 20
+                    set category 15
+                    set action block
+                next
+                edit 21
+                    set category 16
+                    set action block
+                next
+                edit 22
+                    set category 57
+                    set action block
+                next
+                edit 23
+                    set category 63
+                    set action block
+                next
+                edit 24
+                    set category 64
+                    set action block
+                next
+                edit 25
+                    set category 65
+                    set action block
+                next
+                edit 26
+                    set category 66
+                    set action block
+                next
+                edit 27
+                    set category 67
+                    set action block
+                next
+                edit 28
+                    set category 19
+                next
+                edit 29
+                    set category 26
+                    set action block
+                next
+                edit 30
+                    set category 61
+                    set action block
+                next
+                edit 31
+                    set category 86
+                    set action block
+                next
+                edit 32
+                    set category 88
+                next
+                edit 33
+                    set category 90
+                next
+                edit 34
+                    set category 91
+                next
+                edit 35
+                    set category 37
+                    set action block
+                next
+                edit 36
+                next
+            end
+        end
+        set log-all-domain enable
+    next
+    edit "DNS_BOD"
+        config ftgd-dns
+            config filters
+                edit 1
+                    set category 1
+                    set action block
+                next
+                edit 2
+                    set category 3
+                    set action block
+                next
+                edit 3
+                    set category 4
+                    set action block
+                next
+                edit 4
+                    set category 5
+                    set action block
+                next
+                edit 5
+                    set category 6
+                    set action block
+                next
+                edit 6
+                    set category 12
+                    set action block
+                next
+                edit 7
+                    set category 59
+                    set action block
+                next
+                edit 8
+                    set category 62
+                    set action block
+                next
+                edit 9
+                    set category 83
+                    set action block
+                next
+                edit 10
+                    set category 96
+                    set action block
+                next
+                edit 11
+                    set category 98
+                    set action block
+                next
+                edit 12
+                    set category 99
+                    set action block
+                next
+                edit 13
+                    set category 2
+                    set action block
+                next
+                edit 14
+                    set category 7
+                    set action block
+                next
+                edit 15
+                    set category 8
+                    set action block
+                next
+                edit 16
+                    set category 9
+                    set action block
+                next
+                edit 17
+                    set category 11
+                    set action block
+                next
+                edit 18
+                    set category 13
+                    set action block
+                next
+                edit 19
+                    set category 14
+                    set action block
+                next
+                edit 20
+                    set category 15
+                    set action block
+                next
+                edit 21
+                    set category 16
+                    set action block
+                next
+                edit 22
+                    set category 57
+                    set action block
+                next
+                edit 23
+                    set category 63
+                    set action block
+                next
+                edit 24
+                    set category 64
+                    set action block
+                next
+                edit 25
+                    set category 65
+                    set action block
+                next
+                edit 26
+                    set category 66
+                    set action block
+                next
+                edit 27
+                    set category 67
+                    set action block
+                next
+                edit 28
+                    set category 19
+                next
+                edit 29
+                    set category 26
+                    set action block
+                next
+                edit 30
+                    set category 61
+                    set action block
+                next
+                edit 31
+                    set category 86
+                    set action block
+                next
+                edit 32
+                    set category 88
+                next
+                edit 33
+                    set category 90
+                next
+                edit 34
+                    set category 91
+                next
+                edit 35
+                next
+            end
+        end
+        set log-all-domain enable
+    next
+    edit "DNS_ACCESS_CANVA"
+        config domain-filter
+            set domain-filter-table 1
+        end
+        config ftgd-dns
+            config filters
+                edit 1
+                    set category 1
+                    set action block
+                next
+                edit 2
+                    set category 3
+                    set action block
+                next
+                edit 3
+                    set category 4
+                    set action block
+                next
+                edit 4
+                    set category 5
+                    set action block
+                next
+                edit 5
+                    set category 6
+                    set action block
+                next
+                edit 6
+                    set category 12
+                    set action block
+                next
+                edit 7
+                    set category 59
+                    set action block
+                next
+                edit 8
+                    set category 62
+                    set action block
+                next
+                edit 9
+                    set category 83
+                    set action block
+                next
+                edit 10
+                    set category 96
+                    set action block
+                next
+                edit 11
+                    set category 98
+                    set action block
+                next
+                edit 12
+                    set category 99
+                    set action block
+                next
+                edit 13
+                    set category 2
+                    set action block
+                next
+                edit 14
+                    set category 7
+                    set action block
+                next
+                edit 15
+                    set category 8
+                    set action block
+                next
+                edit 16
+                    set category 9
+                    set action block
+                next
+                edit 17
+                    set category 11
+                    set action block
+                next
+                edit 18
+                    set category 13
+                    set action block
+                next
+                edit 19
+                    set category 14
+                    set action block
+                next
+                edit 20
+                    set category 15
+                    set action block
+                next
+                edit 21
+                    set category 16
+                    set action block
+                next
+                edit 22
+                    set category 57
+                    set action block
+                next
+                edit 23
+                    set category 63
+                    set action block
+                next
+                edit 24
+                    set category 64
+                    set action block
+                next
+                edit 25
+                    set category 65
+                    set action block
+                next
+                edit 26
+                    set category 66
+                    set action block
+                next
+                edit 27
+                    set category 67
+                    set action block
+                next
+                edit 28
+                    set category 19
+                    set action block
+                next
+                edit 29
+                    set category 25
+                    set action block
+                next
+                edit 30
+                    set category 72
+                    set action block
+                next
+                edit 31
+                    set category 26
+                    set action block
+                next
+                edit 32
+                    set category 61
+                    set action block
+                next
+                edit 33
+                    set category 86
+                    set action block
+                next
+                edit 34
+                    set category 88
+                next
+                edit 35
+                    set category 90
+                next
+                edit 36
+                    set category 91
+                next
+                edit 37
+                    set category 37
+                    set action block
+                next
+                edit 38
+                    set category 42
+                    set action block
+                next
+                edit 39
+                next
+            end
+        end
+        set log-all-domain enable
+    next
+end
+
+config antivirus profile
+    edit "AV_BAKRIE"
+        set comment "Fix 23112023"
+        config http
+            set av-scan block
+            set outbreak-prevention block
+        end
+        config ftp
+            set av-scan block
+            set outbreak-prevention block
+        end
+        config imap
+            set av-scan block
+            set outbreak-prevention block
+            set executables virus
+        end
+        config pop3
+            set av-scan block
+            set outbreak-prevention block
+            set executables virus
+        end
+        config smtp
+            set av-scan block
+            set outbreak-prevention block
+            set executables virus
+        end
+        config cifs
+            set av-scan block
+            set outbreak-prevention block
+        end
+    next
+end
+
+config webfilter profile
+    edit "WEB_GENERAL_USER"
+        set comment "FIX 23112023"
+        config web
+            set urlfilter-table 5
+        end
+        config ftgd-wf
+            unset options
+            config filters
+                edit 1
+                    set category 1
+                    set action block
+                next
+                edit 2
+                    set category 2
+                    set action block
+                next
+                edit 3
+                    set category 3
+                    set action block
+                next
+                edit 4
+                    set category 4
+                    set action block
+                next
+                edit 5
+                    set category 5
+                    set action block
+                next
+                edit 6
+                    set category 6
+                    set action block
+                next
+                edit 7
+                    set category 7
+                    set action block
+                next
+                edit 8
+                    set category 8
+                    set action block
+                next
+                edit 9
+                    set category 9
+                    set action block
+                next
+                edit 11
+                    set category 11
+                    set action block
+                next
+                edit 12
+                    set category 12
+                    set action block
+                next
+                edit 13
+                    set category 13
+                    set action block
+                next
+                edit 14
+                    set category 14
+                    set action block
+                next
+                edit 15
+                    set category 15
+                    set action block
+                next
+                edit 16
+                    set category 16
+                    set action block
+                next
+                edit 19
+                    set category 19
+                    set action block
+                next
+                edit 20
+                    set category 20
+                    set action block
+                next
+                edit 24
+                    set category 24
+                    set action block
+                next
+                edit 25
+                    set category 25
+                    set action block
+                next
+                edit 26
+                    set category 26
+                    set action block
+                next
+                edit 34
+                    set category 34
+                    set action block
+                next
+                edit 72
+                    set category 72
+                    set action block
+                next
+                edit 75
+                    set category 75
+                    set action block
+                next
+                edit 76
+                    set category 76
+                    set action block
+                next
+                edit 61
+                    set category 61
+                    set action block
+                next
+                edit 37
+                    set category 37
+                    set action block
+                next
+                edit 38
+                    set category 38
+                    set action block
+                next
+                edit 42
+                    set category 42
+                    set action block
+                next
+                edit 69
+                    set category 69
+                    set action block
+                next
+                edit 80
+                    set category 80
+                next
+                edit 93
+                    set category 93
+                    set action block
+                next
+                edit 68
+                    set category 68
+                    set action block
+                next
+                edit 96
+                    set category 96
+                    set action block
+                next
+                edit 98
+                    set category 98
+                    set action block
+                next
+                edit 54
+                    set category 54
+                next
+                edit 85
+                    set category 85
+                    set action block
+                next
+                edit 140
+                    set category 140
+                    set log disable
+                next
+                edit 141
+                    set category 141
+                    set log disable
+                next
+                edit 86
+                    set category 86
+                    set action block
+                next
+                edit 59
+                    set category 59
+                    set action block
+                next
+                edit 62
+                    set category 62
+                    set action block
+                next
+                edit 83
+                    set category 83
+                    set action block
+                next
+                edit 99
+                    set category 99
+                    set action block
+                next
+                edit 57
+                    set category 57
+                    set action block
+                next
+                edit 63
+                    set category 63
+                    set action block
+                next
+                edit 64
+                    set category 64
+                    set action block
+                next
+                edit 65
+                    set category 65
+                    set action block
+                next
+                edit 66
+                    set category 66
+                    set action block
+                next
+                edit 67
+                    set category 67
+                    set action block
+                next
+                edit 88
+                    set category 88
+                    set action block
+                next
+                edit 90
+                    set category 90
+                    set action block
+                next
+                edit 91
+                    set category 91
+                    set action block
+                next
+                edit 53
+                    set action block
+                next
+            end
+        end
+    next
+    edit "WEB_PROCUREMENT"
+        set comment "Web Filter untuk procurement"
+        set options cookiefilter
+        config web
+            set urlfilter-table 6
+        end
+        config ftgd-wf
+            unset options
+            config filters
+                edit 1
+                    set category 1
+                next
+                edit 2
+                    set category 2
+                    set action warning
+                next
+                edit 3
+                    set category 3
+                next
+                edit 4
+                    set category 4
+                next
+                edit 5
+                    set category 5
+                next
+                edit 7
+                    set category 7
+                    set action block
+                next
+                edit 8
+                    set category 8
+                    set action warning
+                next
+                edit 9
+                    set category 9
+                    set action warning
+                next
+                edit 11
+                    set category 11
+                    set action warning
+                next
+                edit 12
+                    set category 12
+                    set action block
+                next
+                edit 13
+                    set category 13
+                    set action block
+                next
+                edit 14
+                    set category 14
+                    set action block
+                next
+                edit 15
+                    set category 15
+                    set action block
+                next
+                edit 16
+                    set category 16
+                    set action warning
+                next
+                edit 19
+                    set category 19
+                    set action block
+                next
+                edit 20
+                    set category 20
+                    set action block
+                next
+                edit 24
+                    set category 24
+                    set action block
+                next
+                edit 25
+                    set category 25
+                    set action block
+                next
+                edit 26
+                    set category 26
+                    set action block
+                next
+                edit 34
+                    set category 34
+                    set action block
+                next
+                edit 72
+                    set category 72
+                    set action block
+                next
+                edit 75
+                    set category 75
+                    set action block
+                next
+                edit 76
+                    set category 76
+                next
+                edit 61
+                    set category 61
+                    set action block
+                next
+                edit 37
+                    set category 37
+                    set action block
+                next
+                edit 38
+                    set category 38
+                next
+                edit 69
+                    set category 69
+                next
+                edit 80
+                    set category 80
+                next
+                edit 93
+                    set category 93
+                    set action block
+                next
+                edit 68
+                    set category 68
+                next
+                edit 86
+                    set category 86
+                    set action block
+                next
+                edit 59
+                    set category 59
+                next
+                edit 62
+                    set category 62
+                next
+                edit 83
+                    set category 83
+                    set action block
+                next
+                edit 99
+                    set category 99
+                    set action block
+                next
+                edit 57
+                    set category 57
+                    set action block
+                next
+                edit 63
+                    set category 63
+                    set action block
+                next
+                edit 64
+                    set category 64
+                    set action block
+                next
+                edit 65
+                    set category 65
+                    set action block
+                next
+                edit 66
+                    set category 66
+                    set action warning
+                next
+                edit 67
+                    set category 67
+                    set action warning
+                next
+                edit 88
+                    set category 88
+                    set action block
+                next
+                edit 90
+                    set category 90
+                    set action block
+                next
+                edit 91
+                    set category 91
+                    set action block
+                next
+                edit 45
+                    set action block
+                next
+            end
+        end
+    next
+    edit "WEB_HRD"
+        set comment "Web Filter untuk HRD"
+        set options cookiefilter
+        config web
+            set urlfilter-table 7
+        end
+        config ftgd-wf
+            set options error-allow
+            config filters
+                edit 1
+                    set category 1
+                next
+                edit 2
+                    set category 2
+                    set action warning
+                next
+                edit 3
+                    set category 3
+                next
+                edit 4
+                    set category 4
+                next
+                edit 5
+                    set category 5
+                next
+                edit 7
+                    set category 7
+                    set action block
+                next
+                edit 8
+                    set category 8
+                    set action warning
+                next
+                edit 9
+                    set category 9
+                    set action warning
+                next
+                edit 11
+                    set category 11
+                    set action warning
+                next
+                edit 12
+                    set category 12
+                    set action block
+                next
+                edit 13
+                    set category 13
+                    set action block
+                next
+                edit 14
+                    set category 14
+                    set action block
+                next
+                edit 15
+                    set category 15
+                    set action block
+                next
+                edit 16
+                    set category 16
+                    set action warning
+                next
+                edit 19
+                    set category 19
+                    set action block
+                next
+                edit 20
+                    set category 20
+                    set action block
+                next
+                edit 24
+                    set category 24
+                    set action block
+                next
+                edit 25
+                    set category 25
+                    set action block
+                next
+                edit 26
+                    set category 26
+                    set action block
+                next
+                edit 34
+                    set category 34
+                next
+                edit 72
+                    set category 72
+                    set action block
+                next
+                edit 75
+                    set category 75
+                    set action block
+                next
+                edit 76
+                    set category 76
+                next
+                edit 61
+                    set category 61
+                    set action block
+                next
+                edit 37
+                    set category 37
+                    set action block
+                next
+                edit 38
+                    set category 38
+                    set action block
+                next
+                edit 69
+                    set category 69
+                next
+                edit 80
+                    set category 80
+                next
+                edit 93
+                    set category 93
+                    set action block
+                next
+                edit 68
+                    set category 68
+                next
+                edit 42
+                    set category 42
+                    set action block
+                next
+                edit 86
+                    set category 86
+                    set action block
+                next
+                edit 59
+                    set category 59
+                next
+                edit 62
+                    set category 62
+                next
+                edit 83
+                    set category 83
+                    set action block
+                next
+                edit 99
+                    set category 99
+                    set action block
+                next
+                edit 57
+                    set category 57
+                    set action block
+                next
+                edit 63
+                    set category 63
+                    set action block
+                next
+                edit 64
+                    set category 64
+                    set action block
+                next
+                edit 65
+                    set category 65
+                    set action block
+                next
+                edit 66
+                    set category 66
+                    set action warning
+                next
+                edit 67
+                    set category 67
+                    set action warning
+                next
+                edit 88
+                    set category 88
+                    set action block
+                next
+                edit 90
+                    set category 90
+                    set action block
+                next
+                edit 91
+                    set category 91
+                    set action block
+                next
+                edit 46
+                    set action block
+                next
+            end
+        end
+    next
+    edit "WEB_USER_CANVA"
+        set comment "FIX 23112023"
+        config web
+            set urlfilter-table 8
+        end
+        config ftgd-wf
+            unset options
+            config filters
+                edit 1
+                    set category 1
+                next
+                edit 2
+                    set category 2
+                    set action warning
+                next
+                edit 3
+                    set category 3
+                next
+                edit 4
+                    set category 4
+                next
+                edit 5
+                    set category 5
+                next
+                edit 7
+                    set category 7
+                    set action block
+                next
+                edit 8
+                    set category 8
+                    set action warning
+                next
+                edit 9
+                    set category 9
+                    set action warning
+                next
+                edit 11
+                    set category 11
+                    set action warning
+                next
+                edit 12
+                    set category 12
+                    set action block
+                next
+                edit 13
+                    set category 13
+                    set action block
+                next
+                edit 14
+                    set category 14
+                    set action block
+                next
+                edit 15
+                    set category 15
+                    set action block
+                next
+                edit 16
+                    set category 16
+                    set action warning
+                next
+                edit 19
+                    set category 19
+                    set action block
+                next
+                edit 20
+                    set category 20
+                    set action block
+                next
+                edit 24
+                    set category 24
+                    set action block
+                next
+                edit 25
+                    set category 25
+                    set action block
+                next
+                edit 26
+                    set category 26
+                    set action block
+                next
+                edit 34
+                    set category 34
+                    set action block
+                next
+                edit 72
+                    set category 72
+                    set action block
+                next
+                edit 75
+                    set category 75
+                    set action block
+                next
+                edit 76
+                    set category 76
+                    set action block
+                next
+                edit 61
+                    set category 61
+                    set action block
+                next
+                edit 38
+                    set category 38
+                    set action block
+                next
+                edit 42
+                    set category 42
+                    set action block
+                next
+                edit 69
+                    set category 69
+                    set action block
+                next
+                edit 80
+                    set category 80
+                next
+                edit 93
+                    set category 93
+                    set action block
+                next
+                edit 68
+                    set category 68
+                    set action block
+                next
+                edit 96
+                    set category 96
+                    set action block
+                next
+                edit 98
+                    set category 98
+                    set action block
+                next
+                edit 54
+                    set category 54
+                next
+                edit 85
+                    set category 85
+                    set action block
+                next
+                edit 140
+                    set category 140
+                    set log disable
+                next
+                edit 141
+                    set category 141
+                    set log disable
+                next
+                edit 86
+                    set category 86
+                    set action block
+                next
+                edit 59
+                    set category 59
+                next
+                edit 62
+                    set category 62
+                next
+                edit 83
+                    set category 83
+                    set action block
+                next
+                edit 99
+                    set category 99
+                    set action block
+                next
+                edit 57
+                    set category 57
+                    set action block
+                next
+                edit 63
+                    set category 63
+                    set action block
+                next
+                edit 64
+                    set category 64
+                    set action block
+                next
+                edit 65
+                    set category 65
+                    set action block
+                next
+                edit 66
+                    set category 66
+                    set action warning
+                next
+                edit 67
+                    set category 67
+                    set action warning
+                next
+                edit 88
+                    set category 88
+                    set action block
+                next
+                edit 90
+                    set category 90
+                    set action block
+                next
+                edit 91
+                    set category 91
+                    set action block
+                next
+                edit 51
+                    set action block
+                next
+            end
+        end
+    next
+end
+
+####################END SECURITY PROFILE#######################
+
+config system sdwan
+    config zone
+        edit "SAP-ZONE"
+        next
+        edit "SDWAN-ZONE-JAKARTA"
+        next
+        edit "WAN-ZONE-INTERNET"
+        next
+    end
+end
+
+config firewall policy
+    edit 100
+        set name "Rule Block Bad IP"
+        set srcintf "any"
+        set dstintf "any"
+        set srcaddr "all"
+        set dstaddr "BAD/COMPROMISE IP"
+        set schedule "always"
+        set service "ALL"
+        set logtraffic disable
+    next
+    edit 101
+        set name "INTERNAL_TO_SAP"
+        set srcintf "lan"
+        set dstintf "SAP-ZONE"
+        set action accept
+        set srcaddr "LOCAL_GROUP"
+        set dstaddr "SAP_GROUP"
+        set schedule "always"
+        set service "ALL"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+    next
+    edit 102
+        set name "SAP_TO_INTERNAL"
+        set srcintf "SAP-ZONE"
+        set dstintf "lan"
+        set action accept
+        set srcaddr "SAP_GROUP"
+        set dstaddr "LOCAL_GROUP"
+        set schedule "always"
+        set service "ALL"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+    next
+    edit 103
+        set name "Rule Active Directory BSP"
+        set srcintf "lan"
+        set dstintf "SDWAN-ZONE-JAKARTA"
+        set action accept
+        set srcaddr "LOCAL_GROUP"
+        set dstaddr "DC SERVER JKT"
+        set schedule "always"
+        set service "Windows AD"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+    next
+    edit 104
+        set name "Rule eMail Server BSP"
+        set srcintf "lan"
+        set dstintf "SDWAN-ZONE-JAKARTA"
+        set action accept
+        set srcaddr "LOCAL_GROUP"
+        set dstaddr "MAIL SERVER BSP"
+        set schedule "always"
+        set service "Mail Service"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+    next
+    edit 105
+        set name "Rule SQL Server Cloudeka"
+        set srcintf "lan"
+        set dstintf "WAN-ZONE-INTERNET"
+        set action accept
+        set srcaddr "LOCAL_GROUP"
+        set dstaddr "SERVER_STAGING"
+        set schedule "always"
+        set service "Server Staging"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+        set nat enable
+    next
+    edit 106
+        set name "Rule untuk Cloudeka"
+        set srcintf "lan"
+        set dstintf "WAN-ZONE-INTERNET"
+        set action accept
+        set srcaddr "LOCAL_GROUP"
+        set dstaddr "CLOUDEKA_GROUP"
+        set schedule "always"
+        set service "Server Cloudeka"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+        set nat enable
+    next
+    edit 107
+        set name "Rule untuk Whatsapp"
+        set srcintf "lan"
+        set dstintf "WAN-ZONE-INTERNET"
+        set action accept
+        set srcaddr "GENERAL_USER_GROUP"
+        set internet-service enable
+        set internet-service-name "Meta-Other" "Meta-Whatsapp"
+        set schedule "always"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+        set nat enable
+    next
+    edit 108
+        set name "Rule untuk Google"
+        set srcintf "lan"
+        set dstintf "WAN-ZONE-INTERNET"
+        set action accept
+        set srcaddr "GENERAL_USER_GROUP"
+        set internet-service enable
+        set internet-service-name "Google-Gmail" "Google-Other" "Google-Web"
+        set schedule "always"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+        set nat enable
+    next
+    edit 109
+        set name "Rule untuk Microsoft"
+        set srcintf "lan"
+        set dstintf "WAN-ZONE-INTERNET"
+        set action accept
+        set srcaddr "LOCAL_GROUP"
+        set internet-service enable
+        set internet-service-name "Microsoft-Azure.Power.BI" "Microsoft-Office365" "Microsoft-Office365.Published" "Microsoft-Office365.Published.Allow" "Microsoft-Office365.Published.Optimize" "Microsoft-Office365.Published.USGOV" "Microsoft-Skype_Teams" "Microsoft-Teams.Published.Worldwide.Allow" "Microsoft-Teams.Published.Worldwide.Optimize"
+        set schedule "always"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+        set nat enable
+    next
+    edit 110
+        set name "Rule DNS Filter BOD"
+        set srcintf "lan"
+        set dstintf "SDWAN-ZONE-JAKARTA"
+        set action accept
+        set srcaddr "USER_GM_GROUP"
+        set dstaddr "DC SERVER JKT"
+        set schedule "always"
+        set service "DNS"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set dnsfilter-profile "DNS_BOD"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+    next
+    edit 111
+        set name "Rule DNS Filter HRD"
+        set srcintf "lan"
+        set dstintf "SDWAN-ZONE-JAKARTA"
+        set action accept
+        set srcaddr "USER_HRD_GROUP"
+        set dstaddr "DC SERVER JKT"
+        set schedule "always"
+        set service "DNS"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set dnsfilter-profile "DNS_HRD"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+    next
+    edit 112
+        set name "Rule DNS Filter Procurement"
+        set srcintf "lan"
+        set dstintf "SDWAN-ZONE-JAKARTA"
+        set action accept
+        set srcaddr "USER_PROCUREMENT_GROUP"
+        set dstaddr "DC SERVER JKT"
+        set schedule "always"
+        set service "DNS"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set dnsfilter-profile "DNS_PROCUREMENT"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+    next
+    edit 113
+        set name "Rule DNS Filter Access canva.com"
+        set srcintf "lan"
+        set dstintf "SDWAN-ZONE-JAKARTA"
+        set action accept
+        set srcaddr "USER_CANVA_GROUP"
+        set dstaddr "DC SERVER JKT"
+        set schedule "always"
+        set service "DNS"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set dnsfilter-profile "DNS_ACCESS_CANVA"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+    next
+    edit 114
+        set name "Rule DNS Filter General User"
+        set srcintf "lan"
+        set dstintf "SDWAN-ZONE-JAKARTA"
+        set action accept
+        set srcaddr "LOCAL_GROUP"
+        set dstaddr "DC SERVER JKT"
+        set schedule "always"
+        set service "DNS"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set dnsfilter-profile "DNS_GENERAL_USER"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+    next
+    edit 115
+        set name "Rule Internet BOD"
+        set srcintf "lan"
+        set dstintf "WAN-ZONE-INTERNET"
+        set action accept
+        set srcaddr "USER_GM_GROUP"
+        set dstaddr "all"
+        set schedule "always"
+        set service "HTTP" "HTTPS"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+        set nat enable
+    next
+    edit 116
+        set name "Rule Internet HRD"
+        set srcintf "lan"
+        set dstintf "WAN-ZONE-INTERNET"
+        set action accept
+        set srcaddr "USER_HRD_GROUP"
+        set dstaddr "all"
+        set schedule "always"
+        set service "HTTP" "HTTPS"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set webfilter-profile "WEB_HRD"
+        set ips-sensor "IPS_BAKRIE"
+        set application-list "APP_HRD"
+        set logtraffic all
+        set nat enable
+    next
+    edit 117
+        set name "Rule Internet Procurement"
+        set srcintf "lan"
+        set dstintf "WAN-ZONE-INTERNET"
+        set action accept
+        set srcaddr "USER_PROCUREMENT_GROUP"
+        set dstaddr "all"
+        set schedule "always"
+        set service "HTTP" "HTTPS"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set webfilter-profile "WEB_PROCUREMENT"
+        set ips-sensor "IPS_BAKRIE"
+        set application-list "APP_PROCUREMENT"
+        set logtraffic all
+        set nat enable
+    next
+    edit 118
+        set name "Rule Access canva.com"
+        set srcintf "lan"
+        set dstintf "WAN-ZONE-INTERNET"
+        set action accept
+        set srcaddr "USER_CANVA_GROUP"
+        set dstaddr "all"
+        set schedule "always"
+        set service "HTTP" "HTTPS"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set webfilter-profile "WEB_USER_CANVA"
+        set ips-sensor "IPS_BAKRIE"
+        set application-list "APP_USER_CANVA"
+        set logtraffic all
+        set nat enable
+    next
+    edit 119
+        set name "Rule Internet General User"
+        set srcintf "lan"
+        set dstintf "WAN-ZONE-INTERNET"
+        set action accept
+        set srcaddr "GENERAL_USER_GROUP"
+        set dstaddr "all"
+        set schedule "always"
+        set service "HTTP" "HTTPS"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set webfilter-profile "WEB_GENERAL_USER"
+        set ips-sensor "IPS_BAKRIE"
+        set application-list "APP_GENERAL_USER"
+        set logtraffic all
+        set nat enable
+    next
+    edit 120
+        set name "Rule untuk User Traveling Jakarta"
+        set srcintf "lan"
+        set dstintf "WAN-ZONE-INTERNET"
+        set action accept
+        set srcaddr "LOCAL_GROUP"
+        set dstaddr "SSLVPN JAKARTA"
+        set schedule "always"
+        set service "ALL"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+        set nat enable
+    next
+    edit 121
+        set name "Rule Troubleshoot Provider-Internet"
+        set srcintf "lan"
+        set dstintf "WAN-ZONE-INTERNET"
+        set action accept
+        set srcaddr "LOCAL_GROUP"
+        set dstaddr "DNS LINTASARTA1" "DNS LINTASARTA2"
+        set schedule "always"
+        set service "PING" "TRACEROUTE"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+        set nat enable
+    next
+    edit 122
+        set name "Rule Troubleshoot-Intranet-out"
+        set srcintf "lan"
+        set dstintf "SAP-ZONE" "SDWAN-ZONE-JAKARTA"
+        set action accept
+        set srcaddr "LOCAL_GROUP"
+        set dstaddr "IP_TROUBLESHOOT"
+        set schedule "always"
+        set service "PING" "TRACEROUTE"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+    next
+    edit 123
+        set name "Rule Troubleshoot-Intranet-in"
+        set srcintf "SAP-ZONE" "SDWAN-ZONE-JAKARTA"
+        set dstintf "lan"
+        set action accept
+        set srcaddr "IP_TROUBLESHOOT"
+        set dstaddr "LOCAL_GROUP"
+        set schedule "always"
+        set service "PING" "TRACEROUTE"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "AV_BAKRIE"
+        set ips-sensor "IPS_BAKRIE"
+        set logtraffic all
+    next
+end
+

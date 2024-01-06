@@ -1,0 +1,257 @@
+#config-version=FGT100F-7.2.3
+
+###################################INITIALIZE###################################
+config system global
+    set admin-server-cert "self-sign"
+    set hostname "{{hostname}}"
+    set management-port-use-admin-sport disable
+    set timezone 53
+end
+
+###################################UNDERLAY###################################
+config system interface
+    edit "{{wan1_interface}}"
+        set vdom "root"
+        set ip {{wan1_ip}} {{wan1_subnet}}
+        set allowaccess ping https ssh
+        set type physical
+        set role wan
+    next
+    edit "{{wan2_interface}}"
+        set vdom "root"
+        set ip {{wan1_ip}} {{wan1_subnet}}
+        set allowaccess ping https ssh
+        set type physical
+        set role wan
+    next
+    edit "lan"
+        set vdom "root"
+        set ip 172.16.0.1 255.255.255.0
+        set allowaccess ping https ssh fgfm fabric
+        set type hard-switch
+        set stp enable
+        set role lan
+    next
+    edit "DC-IPVPN"
+        set vdom "root"
+        set ip 169.254.10.254 255.255.255.255
+        set allowaccess ping
+        set type tunnel
+        set remote-ip 169.254.10.253 255.255.255.0
+        set interface "wan"
+    next
+    edit "DC-INET"
+        set vdom "root"
+        set ip 169.254.20.254 255.255.255.255
+        set allowaccess ping
+        set type tunnel
+        set remote-ip 169.254.20.253 255.255.255.0
+        set interface "lan3"
+    next
+end
+
+###################################SD-WAN###################################
+config system sdwan
+    set status enable
+    config zone
+        edit "virtual-wan-link"
+        next
+        edit "SPOKES"
+        next
+    end
+    config members
+        edit 1
+            set interface "DC-IPVPN"
+            set zone "SPOKES"
+        next
+        edit 2
+            set interface "DC-INET"
+            set zone "SPOKES"
+        next
+    end
+    config service
+        edit 1
+            set name "RULES-TO-SPOKES"
+            set route-tag 6550910
+            set src "all"
+            set priority-members 1
+            set priority-zone "SPOKES"
+        next
+        edit 2
+            set name "RULES-TO-SPOKES-2"
+            set route-tag 6550910
+            set src "all"
+            set priority-members 2
+            set priority-zone "SPOKES"
+        next
+    end
+end
+
+###################################OVERLAY###################################
+config vpn ipsec phase1-interface
+    edit "DC-IPVPN"
+        set type dynamic
+        set interface "wan"
+        set ike-version 2
+        set local-gw 10.0.0.1
+        set peertype any
+        set net-device disable
+        set mode-cfg enable
+        set proposal des-sha1
+        set add-route disable
+        set localid "dc-ipvpn"
+        set dpd on-idle
+        set dhgrp 1
+        set auto-discovery-sender enable
+        set network-overlay enable
+        set network-id 0
+        set ipv4-start-ip 169.254.10.1
+        set ipv4-end-ip 169.254.10.250
+        set ipv4-netmask 255.255.255.0
+        set psksecret ENC 0GUQu0Atd0pohHulzbAZActKph3jS32msO7f5YnPKNQpOIGfmyB45lS3ePG4q5HuflaD0NTzpaQIMP9eX0nuZUE+qKC0ggAsrJnqZCAgjApMG+zMTIAeuET/Z/ZZeMyhzyXeWCZH7wXB4ulAY7SjfcAD2lSwEkZmZ2fpFVB2qB+5pSsyZgduqyjuPemBi+vjUZ+tMQ==
+        set dpd-retryinterval 21
+    next
+    edit "DC-INET"
+        set type dynamic
+        set interface "lan3"
+        set ike-version 2
+        set local-gw 20.0.0.1
+        set peertype any
+        set net-device disable
+        set mode-cfg enable
+        set proposal des-sha1
+        set add-route disable
+        set localid "dc-inet"
+        set dpd on-idle
+        set dhgrp 2
+        set auto-discovery-sender enable
+        set network-overlay enable
+        set network-id 0
+        set ipv4-start-ip 169.254.20.1
+        set ipv4-end-ip 169.254.20.250
+        set ipv4-netmask 255.255.255.0
+        set psksecret ENC 1dl8XFQr8Zo/fG3pJMENXYJpBAusbhd0fQEBBnYb1GCCIc8QKTx4Y3K8O0XZDkYHaXxC0rs8j1hL4pDucaWjzp2b8QpQuvBaAmWNjn+OORoT0Wo6gtMf+aRI/gs+IWBd0rwpVZoJAOSMOvpmDXxLMwm8Kdarf9lvphPE4qUN0M3oaQF5x8HMzEyCk/60GhsmEcz2bg==
+        set dpd-retryinterval 21
+    next
+end
+config vpn ipsec phase2-interface
+    edit "DC-IPVPN"
+        set phase1name "DC-IPVPN"
+        set proposal des-sha1
+        set dhgrp 1
+        set keepalive enable
+    next
+    edit "DC-INET"
+        set phase1name "DC-INET"
+        set proposal des-sha1
+        set dhgrp 2
+        set keepalive enable
+    next
+end
+
+###################################POLICY###################################
+config firewall policy
+    edit 1
+        set name "all"
+        set uuid 877ceb96-69b6-51ee-7d86-5b8c34fd19b9
+        set srcintf "any"
+        set dstintf "any"
+        set action accept
+        set srcaddr "all"
+        set dstaddr "all"
+        set schedule "always"
+        set service "ALL"
+        set logtraffic disable
+    next
+end
+
+###################################ROUTING###################################
+config router prefix-list
+    edit "SEGMENT-DC"
+        config rule
+            edit 1
+                set prefix 172.16.0.0 255.255.255.0
+                unset ge
+                unset le
+            next
+        end
+    next
+end
+
+config router community-list
+    edit "65509:10"
+        config rule
+            edit 1
+                set action permit
+                set match "65509:10"
+            next
+        end
+    next
+end
+
+config router route-map
+    edit "OUT-TO-SPOKES"
+        config rule
+            edit 1
+                set match-ip-address "SEGMENT-DC"
+                set set-community "65509:1"
+            next
+            edit 2
+                set match-community "65509:10"
+            next
+        end
+    next
+    edit "IN-FROM-SPOKES"
+        config rule
+            edit 1
+                set match-community "65509:10"
+                set set-route-tag 6550910
+            next
+        end
+    next
+end
+
+config router bgp
+    set as 65509
+    set router-id 10.0.0.1
+    set keepalive-timer 10
+    set holdtime-timer 5
+    set ibgp-multipath enable
+    set additional-path enable
+    set graceful-restart enable
+    config neighbor-group
+        edit "DC-IPVPN"
+            set capability-default-originate enable
+            set link-down-failover enable
+            set remote-as 65509
+            set route-map-in "IN-FROM-SPOKES"
+            set route-map-out "OUT-TO-SPOKES"
+            set additional-path send
+            set route-reflector-client enable
+        next
+        edit "DC-INET"
+            set capability-default-originate enable
+            set link-down-failover enable
+            set remote-as 65509
+            set route-map-in "IN-FROM-SPOKES"
+            set route-map-out "OUT-TO-SPOKES"
+            set additional-path send
+            set route-reflector-client enable
+        next
+    end
+    config neighbor-range
+        edit 1
+            set prefix 169.254.10.0 255.255.255.0
+            set neighbor-group "DC-IPVPN"
+        next
+        edit 2
+            set prefix 169.254.20.0 255.255.255.0
+            set neighbor-group "DC-INET"
+        next
+    end
+    config network
+        edit 1
+            set prefix 172.16.0.0 255.255.255.0
+        next
+    end
+end

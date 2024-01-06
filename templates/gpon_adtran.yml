@@ -1,0 +1,8 @@
+onu_id: "10@1/1/1.gpon"
+customer_name: "2019013886-CIMB NIAGA PAKJO INET"
+onu_sn: "CIGGd4661958"
+vlan_id: "1704"
+uplink_int: "1/A/1"
+uplink_evc: "1/1"
+onu_int: "10/0/2@1/1/1.gpon"
+bw: "5500"
