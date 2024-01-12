@@ -5,6 +5,7 @@ Alat ini dirancang untuk mengonfigurasi router secara remote menggunakan SSH dan
 ## Penggunaan
 
 1. Buat dan aktifkan lingkungan virtual:
+
     CommandPrompt
     ```bash
     python -m venv venv
@@ -15,15 +16,15 @@ Alat ini dirancang untuk mengonfigurasi router secara remote menggunakan SSH dan
     .\venv\Scripts\Activate
     ```
 
-2. Pasang dependensi yang diperlukan:
+3. Pasang dependensi yang diperlukan:
 
     ```bash
     pip install -r requirements.txt
     ```
 
-3. Buat file konfigurasi (`config.yml`), file templat (`config.j2`) di dalam direktori `templates` dan file informasi perangkat (`devices.json`)
+4. Buat file konfigurasi (`config.yml`), file templat (`config.j2`) di dalam direktori `templates` dan file informasi perangkat (`devices.json`)
 
-4. Jalankan skrip utama untuk mengonfigurasi router:
+5. Jalankan skrip utama untuk mengonfigurasi router:
 
     ```bash
     python main.py
