@@ -1,13 +1,13 @@
 from controller import ConfigController
 
-test = ConfigController(
-    "./templates/ipsecsite2site.yml",
-    "./templates/ipsecsite2site.j2",
+data = ConfigController(
+    "./templates/bsg_type_e.yml",
+    "./templates/bsg_type_e.j2",
     "devices.json",
 )
 
-config_data = test.load_yaml_config()
+config_data = data.load_yaml_config()
 
-command = test.render_template(config_data)
+command = data.render_template(config_data)
 
 print(command)
