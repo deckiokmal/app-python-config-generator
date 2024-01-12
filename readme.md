@@ -8,7 +8,7 @@ Alat ini dirancang untuk mengonfigurasi router secara remote menggunakan SSH dan
 
     ```bash
     python -m venv venv
-    source venv/bin/activate
+    venv\Scripts\activate
     ```
 
 2. Pasang dependensi yang diperlukan:
