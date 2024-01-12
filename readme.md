@@ -1,21 +1,6 @@
-# Alat Konfigurasi Router
+# Network Automation Tools
 
 Alat ini dirancang untuk mengonfigurasi router secara remote menggunakan SSH dan templat konfigurasi.
-
-## Struktur Direktori
-
-|-- main
-| |-- main.py
-| |-- config_generator.py
-| |-- controller.py
-| |-- devices.json
-|-- templates
-| |-- config.yml
-| |-- config.j2
-|-- venv (lingkungan virtual - ini akan dibuat saat aktivasi)
-|-- requirements.txt
-|-- README.md
-
 
 ## Penggunaan
 
