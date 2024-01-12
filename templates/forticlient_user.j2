@@ -1,0 +1,48 @@
+config user local
+    edit "ibcorp1"
+        set type password
+        set passwd c0rpTesting
+    next
+    edit "ibcorp2"
+        set type password
+        set passwd c0rpTesting
+    next
+    edit "ibcorp3"
+        set type password
+        set passwd c0rpTesting
+    next
+    edit "ibcorp4"
+        set type password
+        set passwd c0rpTesting
+    next
+    edit "ibcorp5"
+        set type password
+        set passwd c0rpTesting
+    next
+    edit "ibcorp6"
+        set type password
+        set passwd c0rpTesting
+    next
+    edit "ibcorp7"
+        set type password
+        set passwd c0rpTesting
+    next
+    edit "ibcorp8"
+        set type password
+        set passwd c0rpTesting
+    next
+    edit "ibcorp9"
+        set type password
+        set passwd c0rpTesting
+    next
+    edit "ibcorp10"
+        set type password
+        set passwd c0rpTesting
+    next
+end
+
+config user group
+    edit "IB_CORP_GROUP"
+        set member "adhar" "ibcorp" "ibcorp1" "ibcorp2" "ibcorp3" "ibcorp4" "ibcorp5" "ibcorp6" "ibcorp7" "ibcorp8" "ibcorp9" "ibcorp10"
+    next
+end

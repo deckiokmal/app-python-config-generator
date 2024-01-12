@@ -1,0 +1,325 @@
+config system global
+    set admin-sport 9443
+    set alias "FortiGate-40F"
+    set hostname "{{nama_pelanggan}}"
+    set switch-controller enable
+    set timezone 53
+end
+
+config system accprofile
+    edit "view-only"
+        set secfabgrp read
+        set ftviewgrp read
+        set authgrp read
+        set sysgrp read
+        set netgrp read
+        set loggrp read
+        set fwgrp read
+        set vpngrp read
+        set utmgrp read
+        set wifi read
+    next
+end
+config system admin
+    edit view
+        set accprofile "view-only"
+        set password viewonlykawanlama
+    next
+end
+
+config system central-management
+    set type fortimanager
+    set fmg "202.152.25.234"
+end
+
+config system interface
+    edit "wan"
+        set vdom "root"
+        set ip 192.168.1.2 255.255.255.0
+        set allowaccess ping https ssh snmp fgfm
+        set type physical
+        set role wan
+    next
+    edit "a"
+        set vdom "root"
+        set ip 192.168.0.2 255.255.255.0
+        set allowaccess ping https ssh snmp
+        set type physical
+        set tcp-mss 1316
+        set alias "M2M-NEXTONE"
+        set lldp-reception enable
+        set monitor-bandwidth enable
+        set role wan
+        set snmp-index 5
+        set mtu-override enable
+        set mtu 1400
+    next
+    edit "lan"
+        set vdom "root"
+        set ip {{ip_p2p_lan}} {{lan_subnet}}
+        set allowaccess ping https ssh fgfm fabric
+        set type hard-switch
+        set stp enable
+        set role lan
+        set snmp-index 8
+    next
+end
+
+config firewall address
+    edit "10.0.0.0/8"
+        set subnet 10.0.0.0 255.0.0.0
+    next
+    edit "172.16.0.0/12"
+        set subnet 172.16.0.0 255.240.0.0
+    next
+    edit "192.168.0.0/16"
+        set subnet 192.168.0.0 255.255.0.0
+    next
+end
+
+config vpn ipsec phase1-interface
+    edit "TNL-DC"
+        set interface "a"
+        set mode aggressive
+        set peertype any
+        set net-device enable
+        set proposal aes192-sha256
+        set localid "dc-m"
+        set dpd on-idle
+        set dhgrp 5
+        set auto-discovery-receiver enable
+        set remote-gw 103.61.234.154
+        set psksecret N4sional
+        set dpd-retryinterval 60
+    next
+    edit "TUN-HO"
+        set interface "wan"
+        set mode aggressive
+        set peertype any
+        set net-device enable
+        set proposal aes192-sha256
+        set localid "dc-b"
+        set dpd on-idle
+        set dhgrp 5
+        set auto-discovery-receiver enable
+        set remote-gw 103.61.234.154
+        set psksecret N4sional
+        set dpd-retryinterval 60
+    next
+end
+
+config vpn ipsec phase2-interface
+    edit "TNL-DC"
+        set phase1name "TNL-DC"
+        set proposal aes192-sha256
+        set dhgrp 5
+        set keepalive enable
+    next
+    edit "TUN-HO"
+        set phase1name "TUN-HO"
+        set proposal aes192-sha256
+        set dhgrp 5
+        set keepalive enable
+    next
+end
+
+config system interface
+    edit "TNL-DC"
+        set vdom "root"
+        set ip {{tunnel_dc_add_m2m}} 255.255.255.255
+        set allowaccess ping https ssh http telnet
+        set type tunnel
+        set remote-ip 192.168.218.254 255.255.255.0
+        set interface "a"
+    next
+    edit "TUN-HO"
+        set vdom "root"
+        set ip {{tunnel_ho_add_fo}} 255.255.255.255
+        set allowaccess ping https ssh http telnet
+        set type tunnel
+        set remote-ip 192.168.217.254 255.255.255.0
+        set interface "wan"
+    next
+end
+
+config system sdwan
+    set status enable
+    config zone
+        edit "virtual-wan-link"
+        next
+        edit "internet_breakout"
+        next
+    end
+    config members
+        edit 1
+            set interface "wan"
+            set zone "internet_breakout"
+            set gateway 192.168.1.1
+        next
+        edit 2
+            set interface "a"
+            set zone "internet_breakout"
+            set gateway 192.168.0.1
+        next
+        edit 4
+            set interface "TNL-DC"
+            set source {{ip_p2p_lan}}
+        next
+        edit 3
+            set interface "TUN-HO"
+            set source {{ip_p2p_lan}}
+        next
+    end    
+    config health-check
+        edit "HQ_SLA"
+            set server "192.168.99.130"
+            set update-static-route disable
+            set members 4 3
+            config sla
+                edit 1
+                    set latency-threshold 150
+                    set jitter-threshold 100
+                    set packetloss-threshold 15
+                next
+            end
+        next
+        edit "Google"
+            set server "8.8.8.8"
+            set update-static-route disable
+            set members 2 1
+            config sla
+                edit 1
+                    set latency-threshold 150
+                    set jitter-threshold 100
+                    set packetloss-threshold 15
+                next
+            end
+        next
+    end
+    config service
+        edit 1
+            set name "To_HO"
+            set mode sla
+            set dst "10.0.0.0/8" "172.16.0.0/12" "192.168.0.0/16"
+            set src "all"
+            config sla
+                edit "HQ_SLA"
+                    set id 1
+                next
+            end
+            set priority-members 3 4
+        next
+        edit 2
+            set name "To_Internet"
+            set mode sla
+            set dst "all"
+            set src "all"
+            config sla
+                edit "Google"
+                    set id 1
+                next
+            end
+            set priority-members 1 2
+        next
+    end
+end 
+
+
+config firewall policy
+    edit 2
+        set name "hub-spoke"
+        set srcintf "virtual-wan-link"
+        set dstintf "lan"
+        set srcaddr "all"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+    next
+    edit 1
+        set name "spoke-hub"
+        set srcintf "lan"
+        set dstintf "virtual-wan-link"
+        set srcaddr "all"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+    next
+    edit 3
+        set name "internet_breakout"
+        set srcintf "lan"
+        set dstintf "internet_breakout"
+        set srcaddr "all"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set nat enable
+    next
+end
+
+config router static
+    edit 1
+        set distance 1
+        set sdwan enable
+    next
+end
+
+config router bgp
+    set as 66506
+    set router-id {{ip_p2p_lan}}
+    set ibgp-multipath enable
+    set additional-path enable
+    set graceful-restart enable
+    set additional-path-select 4
+    config neighbor
+        edit "192.168.218.254"
+            set link-down-failover enable
+            set next-hop-self enable
+            set soft-reconfiguration enable
+            set remote-as 66506
+        next
+        edit "192.168.217.254"
+            set link-down-failover enable
+            set next-hop-self enable
+            set soft-reconfiguration enable
+            set remote-as 66506
+        next
+    end
+    config network
+        edit 2
+            set prefix {{ip_p2p_lan_net}}
+        next
+        edit 1
+            set prefix {{network_lan_store}}
+        next
+    end
+    config redistribute "ospf"
+        set status enable
+    end
+end
+
+config router ospf
+    set router-id {{ip_p2p_lan}}
+    config area
+        edit 0.0.0.24
+        next
+    end
+    config ospf-interface
+        edit "OSPF_Mikrotik"
+            set interface "lan"
+            set dead-interval 40
+            set hello-interval 10
+        next
+    end
+    config network
+        edit 1
+            set prefix {{ip_p2p_lan_net}}
+            set area 0.0.0.24
+        next
+    end
+    config redistribute "bgp"
+        set status enable
+    end
+end

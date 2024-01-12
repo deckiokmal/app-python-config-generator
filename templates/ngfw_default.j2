@@ -1,0 +1,111 @@
+config firewall addrgrp
+    edit "compromise ip"
+        set color 6
+        set allow-routing enable
+    next
+    edit "malicious ip"
+        set color 18
+        set allow-routing enable
+    next
+end
+
+config firewall policy
+    edit 100
+        set name "compromise host"
+        set srcintf "lan"
+        set dstintf "any"
+        set srcaddr "compromise ip"
+        set dstaddr "all"
+        set schedule "always"
+        set service "ALL"
+        set logtraffic all
+    next
+    edit 101
+        set name "malicious ip"
+        set srcintf "lan"
+        set dstintf "any"
+        set srcaddr "all"
+        set dstaddr "malicious ip"
+        set schedule "always"
+        set service "ALL"
+        set logtraffic all
+    next
+    edit 102
+        set name "IPS_AV"
+        set srcintf "any"
+        set dstintf "any"
+        set action accept
+        set srcaddr "all"
+        set dstaddr "all"
+        set schedule "always"
+        set service "ALL"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "default"
+        set ips-sensor "default"
+        set logtraffic all
+        set nat enable
+    next
+end
+
+config antivirus profile
+    edit "default"
+        set comment "Scan files and block viruses."
+        config http
+            set av-scan block
+            set outbreak-prevention block
+        end
+        config ftp
+            set av-scan block
+            set outbreak-prevention block
+        end
+        config imap
+            set av-scan block
+            set outbreak-prevention block
+            set executables virus
+        end
+        config pop3
+            set av-scan block
+            set outbreak-prevention block
+            set executables virus
+        end
+        config smtp
+            set av-scan block
+            set outbreak-prevention block
+            set executables virus
+        end
+        config cifs
+            set av-scan block
+            set outbreak-prevention block
+        end
+        set outbreak-prevention-archive-scan disable
+    next
+end
+
+config ips sensor
+    edit "all_default"
+        set comment "All predefined signatures with default setting."
+        set block-malicious-url enable
+        set scan-botnet-connections block
+        config entries
+            edit 1
+                set status enable
+                set log-packet enable
+            next
+        end
+    next
+end
+
+
+config system global
+    set admin-sport 11000
+    set admintimeout 20
+    set timezone 53
+end
+
+config system interface
+    edit "wan"
+        set vdom "root"
+        set allowaccess ping https ssh snmp fgfm
+    next
+end

@@ -1,0 +1,245 @@
+
+#UNDERLAY
+config system interface
+    edit "VPN-BPD-SUMSEL"
+        set vdom "BPD-SUMSEL"
+        set ip 1.11.13.2 255.255.255.252
+        set allowaccess ping ssh snmp telnet
+        set alias "HUB-IPVPN-BPD-SUMSELBABEL"
+        set monitor-bandwidth enable
+        set role wan
+        set snmp-index 47
+        set interface "wan2"
+        set vlanid 1423
+    next
+    edit "port3"
+        set vdom "BPD-SUMSEL"
+        set ip 123.231.246.75 255.255.255.248
+        set allowaccess ping https ssh snmp
+        set type physical
+        set alias "HUB-INET-BPD-SUMSEL"
+        set monitor-bandwidth enable
+        set role wan
+        set snmp-index 27
+    next
+    edit "Loopback1"
+        set vdom "BPD-SUMSEL"
+        set ip 1.5.206.254 255.255.255.255
+        set allowaccess ping https ssh snmp
+        set type loopback
+        set alias "Loopback1-BPD-SUMSEL"
+        set snmp-index 45
+    next
+end
+
+config router static
+    edit 1
+        set gateway 123.231.246.73
+        set device "port3"
+    next
+    edit 2
+        set dst 10.0.0.0 255.0.0.0
+        set blackhole enable
+    next
+    edit 3
+        set dst 172.16.0.0 255.240.0.0
+        set blackhole enable
+    next
+    edit 4
+        set dst 192.168.0.0 255.255.0.0
+        set blackhole enable
+    next
+end
+
+#OVERLAY
+config vpn ipsec phase1-interface
+    edit "HUB-VPN"
+        set type dynamic
+        set interface "VPN-BPD-SUMSEL"
+        set ike-version 2
+        set local-gw 1.11.13.2
+        set peertype any
+        set net-device disable
+        set mode-cfg enable
+        set proposal aes128-sha256
+        set add-route disable
+        set dpd on-idle
+        set auto-discovery-sender enable
+        set tunnel-search nexthop
+        set ipv4-start-ip 169.254.251.1
+        set ipv4-end-ip 169.254.251.250
+        set ipv4-netmask 255.255.255.0
+        set psksecret P4ssword
+        set dpd-retryinterval 5
+    next
+    edit "HUB-INET"
+        set type dynamic
+        set interface "port3"
+        set ike-version 2
+        set local-gw 123.231.246.75
+        set peertype any
+        set net-device disable
+        set mode-cfg enable
+        set proposal aes128-sha256
+        set add-route disable
+        set dpd on-idle
+        set auto-discovery-sender enable
+        set tunnel-search nexthop
+        set ipv4-start-ip 169.254.252.1
+        set ipv4-end-ip 169.254.252.252
+        set ipv4-netmask 255.255.255.0
+        set psksecret P4ssword
+        set dpd-retryinterval 5
+    next
+end
+
+config vpn ipsec phase2-interface
+    edit "HUB-VPN"
+        set phase1name "HUB-VPN"
+        set proposal aes128-sha256
+        set keepalive enable
+    next
+    edit "HUB-INET"
+        set phase1name "HUB-INET"
+        set proposal aes128-sha256
+        set keepalive enable
+    next
+end
+
+config system interface
+    edit "HUB-INET"
+        set vdom "BPD-SUMSEL"
+        set ip 169.254.252.254 255.255.255.255
+        set allowaccess ping ssh telnet
+        set type tunnel
+        set remote-ip 169.254.252.253 255.255.255.0
+        set interface "port3"
+    next
+    edit "HUB-VPN"
+        set vdom "BPD-SUMSEL"
+        set ip 169.254.251.254 255.255.255.255
+        set allowaccess ping ssh telnet
+        set type tunnel
+        set remote-ip 169.254.251.253 255.255.255.0
+        set interface "VPN-BPD-SUMSEL"
+    next
+end
+
+#POLICY
+config firewall policy
+    edit 5
+        set name "SSLVPN POLICY"
+        set uuid 1a1ef1ac-061f-51ee-3688-3d24abedc6ab
+        set srcintf "ssl.BPD-SUMSEL"
+        set dstintf "any"
+        set srcaddr "SSLVPN_TUNNEL_ADDR1"
+        set dstaddr "Loopback"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set ippool enable
+        set poolname "Loopback"
+        set groups "LA"
+        set nat enable
+    next
+    edit 1
+        set name "hub2spoke"
+        set uuid de5d36a6-f543-51ed-8a44-7c22a9e0028a
+        set srcintf "VPN-BPD-SUMSEL"
+        set dstintf "SPOKE-ZONE"
+        set srcaddr "all"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set comments "allow traffic from headquater to spokes"
+    next
+    edit 2
+        set name "spoke2hub"
+        set uuid e366f4a2-f543-51ed-f355-b1cacfadbfdb
+        set srcintf "SPOKE-ZONE"
+        set dstintf "VPN-BPD-SUMSEL"
+        set srcaddr "all"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set comments "allow traffic from spokes to headquater"
+    next
+    edit 3
+        set name "spoke2spoke"
+        set uuid 516d6cd8-f544-51ed-f1e3-1b94358f857c
+        set srcintf "SPOKE-ZONE"
+        set dstintf "SPOKE-ZONE"
+        set srcaddr "all"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set comments "allow traffic from spokes to spokes"
+    next
+    edit 4
+        set name "Loopback2Loopback"
+        set uuid d0e1dd1e-0557-51ee-46fb-3f70bd26843a
+        set srcintf "any"
+        set dstintf "Loopback1"
+        set srcaddr "all"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set logtraffic all
+    next
+end
+
+#ROUTING
+config router route-map
+    edit "in-from-spoke"
+        config rule
+            edit 1
+                set match-community "2023:1"
+            next
+        end
+    next
+end
+
+config router bgp
+    set as 65508
+    set router-id 1.11.13.2
+    set ibgp-multipath enable
+    config neighbor
+        edit "1.11.13.1"
+            set remote-as 65535
+        next
+    end
+    config neighbor-group
+        edit "HUB-PLB"
+            set link-down-failover enable
+            set next-hop-self enable
+            set soft-reconfiguration enable
+            set remote-as 65508
+            set route-map-in "in-from-spoke"
+            set connect-timer 1
+            set route-reflector-client enable
+        next
+    end
+    config neighbor-range
+        edit 1
+            set prefix 169.254.251.0 255.255.255.0
+            set neighbor-group "HUB-PLB"
+        next
+        edit 2
+            set prefix 169.254.252.0 255.255.255.0
+            set neighbor-group "HUB-PLB"
+        next
+    end  
+    config network
+        edit 1
+            set prefix 1.5.206.254 255.255.255.255
+        next
+        edit 2
+            set prefix 1.11.13.0 255.255.255.252
+        next
+    end
+end 
+

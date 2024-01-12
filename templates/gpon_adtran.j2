@@ -1,0 +1,45 @@
+configure terminal
+remote-device ont {{onu_id}}
+description "{{customer_name}}"
+mac-spoofing-allowed enable
+serial-number "{{onu_sn}}"
+no shut
+exit
+evc "{{customer_name}}"
+s-tag {{vlan_id}}
+connect men-port ten-gigabit-ethernet {{uplink_int}}
+no preserve-ce-vlan
+no shut
+exit
+evc-map "{{customer_name}}" {{uplink_evc}}
+connect evc "{{customer_name}}"
+connect uni gigabit-ethernet {{onu_int}}
+men-pri 0
+men-c-tag-pri 0
+subscriber access dhcp mode transparent
+subscriber access dhcpv6 mode transparent
+subscriber access pppoe mode transparent
+subscriber arp mode transparent
+subscriber igmp mode transparent
+description "{{customer_name}}"
+no shut
+exit
+interface gigabit-ethernet {{onu_int}}
+mac limit 8
+no shut
+exit
+shaper "DL-{{customer_name}}" {{uplink_evc}}
+per remote-device {{onu_id}} queue 0
+rate {{bw}}
+min-rate 0
+no shut
+exit
+shaper "UL-{{customer_name}}" {{onu_id}}
+per interface gpon {{onu_int}} channel 1
+rate {{bw}}
+gpon channel assured-bandwidth 0
+gpon channel fixed-bandwidth 0
+min-rate 0
+no shut
+exit
+end

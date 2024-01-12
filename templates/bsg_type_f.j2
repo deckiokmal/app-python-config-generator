@@ -1,0 +1,290 @@
+##############################################################
+################Version: FortiGate-40F v6.4.14################
+##############################################################
+
+
+##############################__INITIALIZE__##############################
+config system global
+    set alias "{{nama_pelanggan}}"
+    set hostname "{{nama_pelanggan}}"
+    set pre-login-banner enable
+    set timezone 53
+end
+
+config system admin
+    edit {{username}}
+        set accprofile "super_admin"
+        set vdom "root"
+        set password {{password}}
+    next
+end
+
+config system snmp sysinfo
+    set status enable
+    set description "SNMP"
+    set contact-info "LINTASARTA"
+    set location "{{nama_pelanggan}}"
+end
+
+config system snmp community
+    edit 1
+        set name "public"
+        config hosts
+            edit 1
+            next
+        end
+    next
+end
+
+config system replacemsg admin pre_admin-disclaimer-text
+    set buffer "{{nama_pelanggan}} !
+    PERANGKAT INI DI MANAGE OLEH LINTASARTA SSA OPERATION.
+    Selamat datang Engineer, klik Accept untuk melanjutkan
+    "
+end
+
+##############################__UNDERLAY__################################
+config system virtual-switch
+    edit "lan"
+        set physical-switch "sw0"
+        config port
+            delete "{{link2_int}}"
+            next
+        end
+    next
+end
+
+config system interface
+    edit "{{link1_int}}"
+        set vdom "root"
+        set mode static
+        set ip {{link1_add}} {{link1_subnet}}
+        set allowaccess ping https ssh telnet
+        set type physical
+        set lldp-reception enable
+        set role wan
+    next
+    edit "{{link2_int}}"
+        set vdom "root"
+        set mode static
+        set ip {{link2_add}} {{link2_subnet}}
+        set allowaccess ping https ssh
+        set type physical
+        set lldp-reception enable
+        set role wan
+    next
+    edit "lan"
+        set vdom "root"
+        set ip {{lan_add}} {{lan_subnet}}
+        set allowaccess ping https ssh snmp telnet
+        set type hard-switch
+        set alias "LAN"
+        set stp enable
+        set device-identification enable
+        set lldp-transmission enable
+        set role lan
+    next
+    edit "{{loopback_int}}"
+        set vdom "root"
+        set ip {{loopback_add}} 255.255.255.255
+        set allowaccess ping https ssh snmp telnet
+        set type loopback
+    next
+end
+
+config firewall address
+    edit "HUB-BSG-INET"
+        set subnet 123.231.246.75 255.255.255.255
+        set allow-routing enable
+    next
+    edit "HUB-BSG-VPN"
+        set subnet 1.11.13.2 255.255.255.255
+        set allow-routing enable
+    next
+    edit "HUB-DC-INET"
+        set subnet 36.37.86.75 255.255.255.255
+        set allow-routing enable
+    next
+    edit "HUB-DC-VPN"
+        set subnet 1.11.8.82 255.255.255.255
+        set allow-routing enable
+    next
+    edit "FMG1"
+        set subnet 61.8.69.62 255.255.255.255
+        set allow-routing enable
+    next
+    edit "FMG2"
+        set subnet 202.152.25.234 255.255.255.255
+        set allow-routing enable
+    next
+end
+
+config firewall addrgrp
+    edit "HUB-VPN"
+        set member "HUB-BSG-VPN" "HUB-DC-VPN"
+        set allow-routing enable
+    next
+    edit "HUB-INET"
+        set member "HUB-DC-INET" "HUB-BSG-INET" "FMG1" "FMG2"
+        set allow-routing enable
+    next
+end
+
+config router static
+    edit 1
+        set gateway {{link1_gw}}
+        set device "{{link1_int}}"
+        set dstaddr "HUB-VPN"
+    next
+    edit 2
+        set gateway {{link2_gw}}
+        set device "{{link2_int}}"
+        set dstaddr "HUB-INET"
+    next
+end
+
+##############################__OVERLAY__#################################
+config vpn ipsec phase1-interface
+    edit "SPOKE-IPVPN"
+        set interface "{{link1_int}}"
+        set ike-version 2
+        set peertype any
+        set net-device enable
+        set mode-cfg enable
+        set proposal aes128-sha256
+        set add-route disable
+        set dpd on-idle
+        set auto-discovery-receiver enable
+        set remote-gw {{link1_ipsec_remotegw}}
+        set psksecret {{link1_psksecret}}
+        set dpd-retryinterval 5
+    next
+    edit "SPOKE-INET"
+        set interface "{{link2_int}}"
+        set ike-version 2
+        set peertype any
+        set net-device enable
+        set mode-cfg enable
+        set proposal aes128-sha256
+        set add-route disable
+        set dpd on-idle
+        set auto-discovery-receiver enable
+        set remote-gw {{link2_ipsec_remotegw}}
+        set psksecret {{link2_psksecret}}
+        set dpd-retryinterval 5
+    next
+end
+
+config vpn ipsec phase2-interface
+    edit "SPOKE-IPVPN"
+        set phase1name "SPOKE-IPVPN"
+        set proposal aes128-sha256
+        set auto-negotiate enable
+    next
+    edit "SPOKE-INET"
+        set phase1name "SPOKE-INET"
+        set proposal aes128-sha256
+        set auto-negotiate enable
+    next
+end
+
+##############################__SDWAN__###################################
+config system sdwan
+    set status enable
+    config zone
+        edit "virtual-wan-link"
+        next
+        edit "DC"
+        next
+    end
+    config members
+        edit 1
+            set interface "SPOKE-IPVPN"
+            set zone "DC"
+            set gateway 169.254.251.254
+            set source {{lan_add}}
+        next
+        edit 2
+            set interface "SPOKE-INET"
+            set zone "DC"
+            set gateway 169.254.252.254
+            set source {{lan_add}}
+        next
+    end
+    config service
+        edit 1
+            set name "Primary"
+            set mode manual
+            set dst "all"
+            set src "all"
+            set priority-members 1
+        next
+        edit 2
+            set name "Secondary"
+            set mode manual
+            set dst "all"
+            set src "all"
+            set priority-members 2
+        next
+    end
+end
+
+##############################__POLICY__##################################
+config firewall policy
+    edit 1
+        set name ANY-ANY
+        set srcintf any
+        set dstintf any
+        set srcaddr all
+        set dstaddr all
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set nat disable
+    next
+end
+
+##############################__ROUTING__#################################
+config router route-map
+    edit "OUT_TO_HUB"
+        config rule
+            edit 1
+                set set-community "{{community_lokal}}"
+            next
+        end
+    next 
+end
+
+config router bgp
+    set as {{bgp_as}}
+    set router-id {{lan_add}}
+    set ibgp-multipath enable
+    config neighbor
+        edit "169.254.251.254"
+            set advertisement-interval 1
+            set link-down-failover enable
+            set next-hop-self enable
+            set soft-reconfiguration enable
+            set remote-as {{bgp_as}}
+            set route-map-out "OUT_TO_HUB"
+            set connect-timer 1
+        next
+        edit "169.254.252.254"
+            set advertisement-interval 1
+            set link-down-failover enable
+            set next-hop-self enable
+            set soft-reconfiguration enable
+            set remote-as {{bgp_as}}
+            set route-map-out "OUT_TO_HUB"
+            set connect-timer 1
+        next
+    end
+    config network
+        edit 1
+            set prefix {{lan_networkadd}}
+        next
+        edit 2
+            set prefix {{loopback_add}}/32
+        next
+    end
+end

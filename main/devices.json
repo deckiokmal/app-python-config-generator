@@ -1,0 +1,70 @@
+{
+    "routers": [
+        {
+            "ip": "203.153.121.162",
+            "username": "cpelintasartassa",
+            "password": "Manage_Lintasart4!",
+            "port": 22
+        },
+        {
+            "ip": "123.231.205.234",
+            "username": "cpelintasartassa",
+            "password": "L1nt4s4rt@_SSA!",
+            "port": 22
+        },
+        {
+            "ip": "123.231.221.50",
+            "username": "cpelintasartassa",
+            "password": "L1nt4s4rt@_SSA!",
+            "port": 22
+        },
+        {
+            "ip": "123.231.201.90",
+            "username": "cpelintasartassa",
+            "password": "L1nt4s4rt@_SSA!",
+            "port": 22
+        },
+        {
+            "ip": "123.231.204.138",
+            "username": "cpelintasartassa",
+            "password": "L1nt4s4rt@_SSA!",
+            "port": 22
+        },
+        {
+            "ip": "123.231.201.74",
+            "username": "cpelintasartassa",
+            "password": "L1nt4s4rt@_SSA!",
+            "port": 22
+        },
+        {
+            "ip": "123.231.201.98",
+            "username": "cpelintasartassa",
+            "password": "L1nt4s4rt@_SSA!",
+            "port": 22
+        },
+        {
+            "ip": "123.231.216.186",
+            "username": "cpelintasartassa",
+            "password": "L1nt4s4rt@_SSA!",
+            "port": 22
+        },
+        {
+            "ip": "123.231.201.234",
+            "username": "cpelintasartassa",
+            "password": "L1nt4s4rt@_SSA!",
+            "port": 22
+        },
+        {
+            "ip": "123.231.221.250",
+            "username": "cpelintasartassa",
+            "password": "L1nt4s4rt@_SSA!",
+            "port": 22
+        },
+        {
+            "ip": "123.231.172.242",
+            "username": "cpelintasartassa",
+            "password": "L1nt4s4rt@_SSA!",
+            "port": 22
+        }
+    ]
+}
