@@ -5,10 +5,14 @@ Alat ini dirancang untuk mengonfigurasi router secara remote menggunakan SSH dan
 ## Penggunaan
 
 1. Buat dan aktifkan lingkungan virtual:
-
+    CommandPrompt
     ```bash
     python -m venv venv
     venv\Scripts\activate
+    ```
+    Powershell
+    ```bash
+    .\venv\Scripts\Activate
     ```
 
 2. Pasang dependensi yang diperlukan:
